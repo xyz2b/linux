@@ -4,6 +4,8 @@
 
 #include "JavaThread.h"
 
+int ret;
+
 void* thread_do(void* arg) {
     JavaThread* Self = (JavaThread*) arg;
 
@@ -22,6 +24,9 @@ void* thread_do(void* arg) {
     for (int i = 0; i < 10; i++) {
         INFO_PRINT("%s: %d", Self->_name.c_str(), i);
         usleep(500);
+        if (i == 5) {
+            pthread_exit(reinterpret_cast<void *>(1222));
+        }
     }
 
     return 0;
@@ -88,7 +93,7 @@ void JavaThread::run() {
             pthread_cond_signal(_cond);
             break;
         } else {
-            INFO_PRINT("[%s] 线程状态: %d", _name.c_str(), _state);
+            INFO_PRINT("[%s]:[%X] 线程状态: %d", _name.c_str(), pthread_self(), _state);
         }
 
         sleep(1);
