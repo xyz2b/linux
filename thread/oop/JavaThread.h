@@ -41,6 +41,7 @@ public:
 
 public:
     void run();
+    void join();
 };
 
 

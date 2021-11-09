@@ -95,3 +95,7 @@ void JavaThread::run() {
     }
 
 }
+
+void JavaThread::join() {
+
+}
