@@ -29,11 +29,14 @@ void* thread_do(void* arg) {
 
 JavaThread::JavaThread(string name) {
 
-    // PTHREAD_CREATE_JOINABLE 使用该模式，线程是串行执行的，解决办法使用 PTHREAD_CREATE_DETACHED
-    // PTHREAD_CREATE_DETACHED 使用该模式，无法join，即无法等待该线程执行完成之后，再退出主线程，主线程可能会先于该线程执行完毕
-    //      JVM main线程（就是这里所说的该线程）是join（这个join机制是hotspot自实现的）
-    //
-    //      阻塞唤醒JVM main线程，具体实现：互斥锁 + 条件变量（在JVM main线程(thread_do方法)中阻塞，在HotSpot主线程(run方法)中唤醒）
+
+    //          JVM main线程 是 PTHREAD_CREATE_JOINABLE 模式的，然后join，该线程执行的逻辑就是JavaMain，该线程是在JDK main线程中创建的（在本例中使用getchar()替代join进行阻塞）
+    //              除JVM main线程之外的其他业务线程，都是在JVM main中创建的，都是 PTHREAD_CREATE_DETACHED 模式的，这些线程的创建并不是一步到位的，要阻塞之后再唤醒
+    //                  原因：1.业务上来说是因为要在线程真正处理业务逻辑前需要做一些初始化的的工作
+    //                       2.技术上来说
+    //                          PTHREAD_CREATE_JOINABLE 其他业务线程使用该模式，线程是串行执行的，解决办法使用 PTHREAD_CREATE_DETACHED
+    //                          PTHREAD_CREATE_DETACHED 其他业务线程使用该模式，无法join，即无法等待其他业务线程执行完成之后，再退出JVM main线程，JVM main线程可能会先于其他业务线程执行完毕
+    //                          实现方式：阻塞唤醒其他业务线程，具体实现：互斥锁 + 条件变量（在其他业务线程(thread_do方法)中阻塞，在JVM main线程(run方法)中唤醒）
     //
     /*
      * PTHREAD_CREATE_JOINABLE：
