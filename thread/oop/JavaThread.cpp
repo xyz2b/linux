@@ -21,13 +21,18 @@ void* thread_do(void* arg) {
     pthread_cond_wait(Self->_cond, Self->_startThread_lock);
     pthread_mutex_unlock(Self->_startThread_lock);
 
+    Self->_state = RUNNABLE;
+
     for (int i = 0; i < 10; i++) {
         INFO_PRINT("%s: %d", Self->_name.c_str(), i);
         usleep(500);
         if (i == 5) {
+            Self->_state = ZOMBIE;
             pthread_exit(reinterpret_cast<void *>(1222));
         }
     }
+
+    Self->_state = ZOMBIE;
 
     return 0;
 }
@@ -102,5 +107,14 @@ void JavaThread::run() {
 }
 
 void JavaThread::join() {
+    while (true) {
+        if (_state == ZOMBIE) {
+            INFO_PRINT("[%s] 执行完毕", _name.c_str());
+            break;
+        } else {
+            INFO_PRINT("[%s]:[%X] 线程状态: %d", _name.c_str(), pthread_self(), _state);
+        }
 
+        sleep(1);
+    }
 }

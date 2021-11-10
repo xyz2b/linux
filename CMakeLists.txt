@@ -5,4 +5,4 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(linux main.cpp include/common.h thread/oop/JavaThread.cpp thread/oop/JavaThread.h)
+add_executable(linux main.cpp include/common.h thread/oop/JavaThread.cpp thread/oop/JavaThread.h jvm.cpp jvm.h)
