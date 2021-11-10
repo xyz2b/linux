@@ -3,6 +3,9 @@
 //
 
 #include "JavaThread.h"
+#include "TaskPool.h"
+
+extern TaskPool taskPool;
 
 int ret;
 
@@ -20,6 +23,16 @@ void* thread_do(void* arg) {
     INFO_PRINT("[%s] 线程阻塞，等待唤醒", Self->_name.c_str());
     pthread_cond_wait(Self->_cond, Self->_startThread_lock);
     pthread_mutex_unlock(Self->_startThread_lock);
+
+
+    while (0 == taskPool._count) {
+        pthread_mutex_lock(taskPool._lock);
+        Self->_state = SLEEPING;
+        INFO_PRINT("[%s] 暂无任务执行，进入阻塞", Self->_name.c_str());
+        pthread_cond_wait(taskPool._cond, taskPool._lock);
+        pthread_mutex_unlock(taskPool._lock);
+    }
+
 
     Self->_state = RUNNABLE;
 
@@ -91,7 +104,6 @@ JavaThread::JavaThread(string name) {
 // 主线程run方法中的唤醒逻辑 可能会比 业务线程thread_do方法中的阻塞逻辑先运行，不确定，所以会造成先唤醒再阻塞的情况
 // 解决办法：使用业务线程状态来判断
 void JavaThread::run() {
-
     while (true) {
         if (_state == INITIALIZED) {
             INFO_PRINT("唤醒 [%s]", _name.c_str());
@@ -117,4 +129,25 @@ void JavaThread::join() {
 
         sleep(1);
     }
+}
+
+
+JavaThread::JavaThread(int thread_num) {
+    stringstream ss;
+    ss << "t";
+    ss << thread_num;
+    _name = ss.str();
+
+    pthread_mutex_init(_startThread_lock, NULL);
+    pthread_cond_init(_cond, NULL);
+
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+    _state = ALLOCATED;
+
+    pthread_create(_tid, &attr, thread_do, this);
+
+    pthread_attr_destroy(&attr);
 }

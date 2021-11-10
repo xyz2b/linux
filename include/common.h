@@ -10,6 +10,10 @@
 #include <unistd.h>
 #include <memory.h>
 #include <string>
+#include <pthread.h>
+#include <map>
+#include <sstream>
+#include <iostream>
 
 using namespace std;
 

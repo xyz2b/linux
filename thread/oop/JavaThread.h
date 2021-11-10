@@ -6,11 +6,6 @@
 #define LINUX_JAVATHREAD_H
 
 #include "../../include/common.h"
-#include <string>
-#include <pthread.h>
-
-using namespace std;
-
 
 enum ThreadState {
     ALLOCATED,                    // Memory has been allocated but not initialized
@@ -38,7 +33,7 @@ public:
     ThreadState _state;
 public:
     JavaThread(string name);
-
+    JavaThread(int index);
 public:
     void run();
     void join();

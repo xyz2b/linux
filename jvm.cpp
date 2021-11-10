@@ -12,7 +12,6 @@ int JavaMain(void* args) {
     t1->run();
     t2->run();
 
-    // TODO: Java Thread join
     t1->join();
     t2->join();
 
