@@ -5,6 +5,7 @@
 #include "./thread/oop/ThreadPool.h"
 
 TaskPool taskPool;
+ThreadPool threadPool(3, 5);
 
 int main() {
 //    int rst = continueInNewThread();
@@ -15,8 +16,6 @@ int main() {
 //        taskPool->push(new Task(i));
 //    }
 //    taskPool->print();
-
-    ThreadPool threadPool(3, 5);
 
     int v;
     while (true) {

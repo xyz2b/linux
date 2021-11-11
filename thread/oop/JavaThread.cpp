@@ -4,8 +4,10 @@
 
 #include "JavaThread.h"
 #include "TaskPool.h"
+#include "ThreadPool.h"
 
 extern TaskPool taskPool;
+extern ThreadPool threadPool;
 
 int ret;
 
@@ -45,7 +47,7 @@ void* thread_do(void* arg) {
         // 抢任务执行，需要加锁，避免多个线程抢到同一个任务执行，加锁只需要加在抢任务的逻辑即可
         Task *task = taskPool.pop();
         INFO_PRINT("[%s]抢到了 %d号 任务，开始执行", Self->_name.c_str(), task->_num);
-
+        threadPool._busy_size++;
         pthread_mutex_unlock(taskPool._lock);
 
         Self->_state = RUNNABLE;
