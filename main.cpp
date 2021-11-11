@@ -3,6 +3,7 @@
 #include "./thread/oop/Task.h"
 #include "./thread/oop/TaskPool.h"
 #include "./thread/oop/ThreadPool.h"
+#include "./thread/oop/ManageThread.h"
 
 TaskPool taskPool;
 ThreadPool threadPool(3, 5);
@@ -16,6 +17,8 @@ int main() {
 //        taskPool->push(new Task(i));
 //    }
 //    taskPool->print();
+
+    ManageThread::run();
 
     int v;
     while (true) {

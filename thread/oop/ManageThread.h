@@ -5,9 +5,13 @@
 #ifndef LINUX_MANAGETHREAD_H
 #define LINUX_MANAGETHREAD_H
 
+#include "../../include/common.h"
 
 class ManageThread {
+public:
 
+public:
+    static void run();
 };
 
 

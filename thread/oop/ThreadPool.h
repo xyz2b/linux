@@ -14,9 +14,14 @@ public:
     int _alive_size;
     int _busy_size;
 
+    pthread_mutex_t _lock[1];
+
     JavaThread** _threads;
 public:
     ThreadPool(int core, int max);
+
+    void expand();
+    void shrink();
 };
 
 
