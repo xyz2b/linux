@@ -27,7 +27,18 @@ int main() {
             taskPool.push(new Task(i));
         }
 
-        pthread_cond_broadcast(taskPool._cond);
+        /**
+         * 优化
+         * 1.如果任务数超过核心线程数，全部唤醒
+         * 2.如果小于核心线程数，有几个任务唤醒几个线程，减少任务争抢的消耗
+         * */
+        if (taskPool._count >= threadPool._core_size) {
+            pthread_cond_broadcast(taskPool._cond);
+        } else {
+            for (int i = 0; i < taskPool._count; i++) {
+                pthread_cond_signal(taskPool._cond);
+            }
+        }
     }
     getchar();
     return 0;

@@ -9,7 +9,7 @@ ThreadPool::ThreadPool(int core_size, int max_size) {
     _max_size = max_size;
     _alive_size = core_size;
     _busy_size = 0;
-    _threads = (JavaThread**) malloc(max_size * sizeof(*_threads));
+    _threads = (JavaThread**) calloc(max_size, sizeof(*_threads));
 
     for (int i = 0; i < core_size; i++) {
         JavaThread* t = new JavaThread(i);

@@ -24,27 +24,47 @@ void* thread_do(void* arg) {
     pthread_cond_wait(Self->_cond, Self->_startThread_lock);
     pthread_mutex_unlock(Self->_startThread_lock);
 
-
-    while (0 == taskPool._count) {
+    for(;;) {
+        // 执行业务逻辑
+        // 这个锁是锁在任务池上的
         pthread_mutex_lock(taskPool._lock);
-        Self->_state = SLEEPING;
-        INFO_PRINT("[%s] 暂无任务执行，进入阻塞", Self->_name.c_str());
-        pthread_cond_wait(taskPool._cond, taskPool._lock);
-        pthread_mutex_unlock(taskPool._lock);
-    }
-
-
-    Self->_state = RUNNABLE;
-
-    for (int i = 0; i < 10; i++) {
-        INFO_PRINT("%s: %d", Self->_name.c_str(), i);
-        usleep(500);
-        if (i == 5) {
-            Self->_state = ZOMBIE;
-            pthread_exit(reinterpret_cast<void *>(1222));
+        while (0 == taskPool._count) {
+            Self->_state = SLEEPING;
+            INFO_PRINT("[%s] 暂无任务执行，进入阻塞", Self->_name.c_str());
+            // 第一个线程加锁在任务池上之后，走到这里，阻塞了，但并没有释放锁
+            // 第二个线程也要在任务池上加锁，由于第一个线程并没有释放锁，为什么第二个线程还能走到这里，因为wait底层做了一些事情
+            /**
+             * wait底层做了什么
+             * 1. unlock
+             * 2. 线程阻塞在条件变量上
+             * 3. 线程被唤醒之后，lock
+             * */
+            pthread_cond_wait(taskPool._cond, taskPool._lock);
         }
-    }
 
+        // 抢任务执行，需要加锁，避免多个线程抢到同一个任务执行，加锁只需要加在抢任务的逻辑即可
+        Task *task = taskPool.pop();
+        INFO_PRINT("[%s]抢到了 %d号 任务，开始执行", Self->_name.c_str(), task->_num);
+
+        pthread_mutex_unlock(taskPool._lock);
+
+        Self->_state = RUNNABLE;
+        // 执行任务
+        task->doit();
+        // 模拟执行任务花费的时间
+        sleep(2);
+
+//    for (int i = 0; i < 10; i++) {
+//        INFO_PRINT("%s: %d", Self->_name.c_str(), i);
+//        usleep(500);
+//        if (i == 5) {
+//            Self->_state = ZOMBIE;
+//            pthread_exit(reinterpret_cast<void *>(1222));
+//        }
+//    }
+
+        INFO_PRINT("[%s]执行完毕 %d号 任务", Self->_name.c_str(), task->_num);
+    }
     Self->_state = ZOMBIE;
 
     return 0;
