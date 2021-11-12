@@ -29,8 +29,13 @@ int main() {
             taskPool.push(new Task(i));
         }
 
-        // 有任务就唤醒管理线程
-        pthread_cond_signal(&ManageThread::_cond);
+        // 只有管理线程进行睡眠阻塞之后，才能被唤醒
+        // 如果不加判断，则该唤醒逻辑的执行 可能先于 管理线程阻塞的逻辑，导致了没有被阻塞就唤醒的问题
+        if (ManageThread::_is_locked) {
+            INFO_PRINT("唤醒[管理线程]");
+            // 有任务就唤醒管理线程
+            pthread_cond_signal(&ManageThread::_cond);
+        }
 
         /**
          * 优化

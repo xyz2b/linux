@@ -8,6 +8,7 @@
 
 pthread_mutex_t ManageThread::_lock;
 pthread_cond_t ManageThread::_cond;
+bool ManageThread::_is_locked;
 
 extern TaskPool taskPool;
 extern ThreadPool threadPool;
@@ -52,6 +53,7 @@ void* mange_thread_do(void* arg) {
          * */
         if (taskPool._count == 0 && threadPool._busy_size == 0) {
             pthread_mutex_lock(&ManageThread::_lock);
+            ManageThread::_is_locked = true;
             INFO_PRINT("[管理线程] 进入休眠，等待唤醒");
             pthread_cond_wait(&ManageThread::_cond, &ManageThread::_lock);
             pthread_mutex_unlock(&ManageThread::_lock);
@@ -70,6 +72,7 @@ void ManageThread::run() {
 }
 
 void ManageThread::init() {
+    ManageThread::_is_locked = false;
     if (pthread_mutex_init(&_lock, NULL) != 0) {
         ERROR_PRINT("mutex init failed!");
         exit(-1);
