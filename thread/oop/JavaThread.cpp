@@ -59,6 +59,19 @@ void* thread_do(void* arg) {
             }
         }
 
+        // 线程中断机制，通过线程的唯一标示，精准控制杀死某个线程
+        if (Self->_interrupted) {
+            INFO_PRINT("中断 [%s]", Self->_name.c_str());
+
+            pthread_mutex_lock(threadPool._lock);
+            threadPool._alive_size--;
+            pthread_mutex_unlock(threadPool._lock);
+
+            // 记得这里一定要解锁，和上面的加锁相对应
+            pthread_mutex_unlock(taskPool._lock);
+            pthread_exit(NULL);
+        }
+
         // 抢任务执行，需要加锁，避免多个线程抢到同一个任务执行，加锁只需要加在抢任务的逻辑即可
         Task *task = taskPool.pop();
         INFO_PRINT("[%s]抢到了 %d号 任务，开始执行", Self->_name.c_str(), task->_num);

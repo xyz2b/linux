@@ -31,6 +31,8 @@ public:
     pthread_cond_t _cond[1];
 
     ThreadState _state;
+    // 中断标记位，JavaThread标识为中断，当其被唤醒之后会自己退出（在执行业务逻辑前）
+    bool _interrupted;
 public:
     JavaThread(string name);
     JavaThread(int index);
