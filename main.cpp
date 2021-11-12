@@ -17,7 +17,7 @@ int main() {
 //        taskPool->push(new Task(i));
 //    }
 //    taskPool->print();
-
+    ManageThread::init();
     ManageThread::run();
 
     int v;
@@ -28,6 +28,9 @@ int main() {
         for (int i = 0; i < v; i++) {
             taskPool.push(new Task(i));
         }
+
+        // 有任务就唤醒管理线程
+        pthread_cond_signal(&ManageThread::_cond);
 
         /**
          * 优化

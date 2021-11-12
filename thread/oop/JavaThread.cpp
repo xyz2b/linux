@@ -14,11 +14,11 @@ int ret;
 void* thread_do(void* arg) {
     JavaThread* Self = (JavaThread*) arg;
 
-    // 模拟初始化
-    sleep(3);
-
-    // 模拟向JVM报告创建线程的一些数据
-    sleep(3);
+//    // 模拟初始化
+//    sleep(3);
+//
+//    // 模拟向JVM报告创建线程的一些数据
+//    sleep(3);
 
     pthread_mutex_lock(Self->_startThread_lock);
     Self->_state = INITIALIZED;
@@ -30,6 +30,7 @@ void* thread_do(void* arg) {
         // 执行业务逻辑
         // 这个锁是锁在任务池上的
         pthread_mutex_lock(taskPool._lock);
+        // 无任务时，工作线程阻塞睡眠
         while (0 == taskPool._count) {
             Self->_state = SLEEPING;
             INFO_PRINT("[%s] 暂无任务执行，进入阻塞", Self->_name.c_str());
@@ -42,6 +43,20 @@ void* thread_do(void* arg) {
              * 3. 线程被唤醒之后，lock
              * */
             pthread_cond_wait(taskPool._cond, taskPool._lock);
+
+            // 没有任务时缩减线程数到core_size
+            // 销毁线程使用的手段是唤醒线程，让其自己执行完毕退出，因为此时是销毁，所以不需要执行业务逻辑，所以要加以判断
+            if (threadPool._alive_size > threadPool._core_size) {
+                INFO_PRINT("[%s] 销毁", Self->_name.c_str());
+
+                pthread_mutex_lock(threadPool._lock);
+                threadPool._alive_size--;
+                pthread_mutex_unlock(threadPool._lock);
+
+                // 记得这里一定要解锁，和上面的加锁相对应
+                pthread_mutex_unlock(taskPool._lock);
+                pthread_exit(NULL);
+            }
         }
 
         // 抢任务执行，需要加锁，避免多个线程抢到同一个任务执行，加锁只需要加在抢任务的逻辑即可
@@ -69,6 +84,10 @@ void* thread_do(void* arg) {
 //    }
 
         INFO_PRINT("[%s]执行完毕 %d号 任务", Self->_name.c_str(), task->_num);
+
+        pthread_mutex_lock(threadPool._lock);
+        threadPool._busy_size--;
+        pthread_mutex_unlock(threadPool._lock);
     }
     Self->_state = ZOMBIE;
 

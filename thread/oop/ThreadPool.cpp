@@ -37,5 +37,7 @@ void ThreadPool::expand() {
 }
 
 void ThreadPool::shrink() {
-    pthread_cond_signal(taskPool._cond);
+    for (int i = 0; i < _max_size - _core_size; i++) {
+        pthread_cond_signal(taskPool._cond);
+    }
 }

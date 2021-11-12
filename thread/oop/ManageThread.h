@@ -9,8 +9,10 @@
 
 class ManageThread {
 public:
-
+    static pthread_mutex_t _lock;
+    static pthread_cond_t _cond;
 public:
+    static void init();
     static void run();
 };
 
