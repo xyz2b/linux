@@ -43,8 +43,10 @@ int main() {
          * 2.如果小于核心线程数，有几个任务唤醒几个线程，减少任务争抢的消耗
          * */
         if (taskPool._count >= threadPool._core_size) {
+            INFO_PRINT("唤醒全部线程");
             pthread_cond_broadcast(taskPool._cond);
         } else {
+            INFO_PRINT("唤醒%d个线程", taskPool._count);
             for (int i = 0; i < taskPool._count; i++) {
                 pthread_cond_signal(taskPool._cond);
             }

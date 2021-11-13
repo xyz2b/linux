@@ -59,6 +59,7 @@ typedef enum {
 
 #define PRINT(level, msg, ...) do{ \
     printf("[%s] (%s:%d->%s): " msg"\n", level, __FILE__, __LINE__, __FUNCTION__, ##__VA_ARGS__); \
+    fflush(stdout); \
 }while(0)
 
 #define DEBUG_PRINT(msg, ...) if (DEBUG >= LOG_LEVEL)  { \

@@ -14,6 +14,7 @@ extern TaskPool taskPool;
 extern ThreadPool threadPool;
 
 void* mange_thread_do(void* arg) {
+    sleep(1);
     INFO_PRINT("[管理线程] 开始执行");
 
     while (true) {
@@ -66,12 +67,14 @@ void* mange_thread_do(void* arg) {
 }
 
 void ManageThread::run() {
+    INFO_PRINT("创建管理线程");
     pthread_t tid[1];
 
     pthread_create(tid, NULL, mange_thread_do, NULL);
 }
 
 void ManageThread::init() {
+    INFO_PRINT("初始化管理线程");
     ManageThread::_is_locked = false;
     if (pthread_mutex_init(&_lock, NULL) != 0) {
         ERROR_PRINT("mutex init failed!");
